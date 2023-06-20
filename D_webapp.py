@@ -95,7 +95,7 @@ def main():
     diagnosis = ''
     
     # creating a button for Prediction
-    if st.button('Diabetes Test Result'):
+    if st.button('Cardiovascular Test Result'):
         diagnosis = diabetes_prediction([age,sex,chest_pain_type, trestbps, chol,fbs, restecg, thalach, exang, oldpeak,slope,ca,thal])
         
         
