@@ -3,6 +3,8 @@ import pickle
 import streamlit as st
 # loading the saved model
 loaded_model=pickle.load(open("trained_model.sav",'rb'))
+df=pickle.load(open("df.pkl",'rb'))
+
 def diabetes_prediction(input_data):
     input_data_array=np.asarray(input_data,dtype=np.float64)
 
@@ -12,6 +14,13 @@ def diabetes_prediction(input_data):
         return"The Person have Heart Disesase!"
     else:
         return"The Person do no have Heart Disease"
+def diabetes_prediction1(input_data):
+    input_data_array=np.asarray(input_data,dtype=np.float64)
+
+    input_data_reshaped=input_data_array.reshape(1,-1)
+    prediction=loaded_model.predict(input_data_reshaped)
+    return prediction
+
 def main():
     st.title("Cardiovascular Health Assessment")
     description = '1 is typical angina Pain, 2 is atypical angina Pain, 3 is non-anginal Pain'
@@ -96,10 +105,56 @@ def main():
     
     # creating a button for Prediction
     if st.button('Cardiovascular Test Result'):
-        diagnosis = diabetes_prediction([age,sex,chest_pain_type, trestbps, chol,fbs, restecg, thalach, exang, oldpeak,slope,ca,thal])
-        
+        in_data = [age, sex, chest_pain_type, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal]
+        diagnosis = diabetes_prediction(in_data)
+        in_data_dict = dict(zip(df.columns, in_data))
+        in_data_dict['target'] = int(diabetes_prediction1(in_data))
+        df1 = df.append(in_data_dict, ignore_index=True)
+
+    # Specify the absolute file path for df.pkl
+        file_path = "C:/Users/Anuj/Heart desease Prediction/df.pkl"
+
+    # Save the updated DataFrame to df.pkl
+        with open(file_path, "wb") as file:
+            pickle.dump(df1, file)  
+    from github import Github
+
+# GitHub repository details
+    repository_owner = 'GitAnuj13'
+    repository_name = 'Heart-disease-web-app'
+    file_path = 'df.pkl'
+    commit_message = 'Update df.pkl'
+
+    # Personal access token
+    access_token = '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'
+
+    # Load the pickle data
+    with open('df.pkl', 'rb') as file:
+        file_data = file.read()
+
+# Authenticate with GitHub using the access token
+    g = Github(access_token)
+
+# Get the repository
+    repo = g.get_repo(f'{repository_owner}/{repository_name}')
+
+# Create or update the file in the repository
+    try:
+    # Get the existing file
+        existing_file = repo.get_contents(file_path)
+
+    # Update the file
+        repo.update_file(existing_file.path, commit_message, file_data, existing_file.sha)
+        print(f'File {file_path} updated successfully.')
+    except Exception:
+    # Create the file if it doesn't exist
+        repo.create_file(file_path, commit_message, file_data)
+        print(f'File {file_path} created successfully.')
         
     st.success(diagnosis)
+    if st.checkbox('Show Merged Data'):
+        st.write(df)
+
 
 # getting input data
 #63	1	3	145	233	1	0	150	0	2.3	0	0	1	1
